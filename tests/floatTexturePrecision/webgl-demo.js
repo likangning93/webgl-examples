@@ -15,7 +15,6 @@ function main() {
     const canvas = document.querySelector('#glcanvas');
     const gl = canvas.getContext('webgl');
     const width = canvas.width;
-    const height = canvas.height;
 
     // If we don't have a GL context, give up now
     if (!gl) {
@@ -36,7 +35,7 @@ function main() {
     void main() {
         gl_Position = aVertexPosition;
     }
-  `;
+    `;
 
     const numbersLength = numbers.length;
 
@@ -77,11 +76,23 @@ function main() {
         int expectedIndex = int(floor(texcoord * TEST_COUNT));
         float expected = getExpected(expectedIndex);
 
-        gl_FragColor = vec4(abs(expected - actual), 0.0, 0.0, 1.0);
+        if (gl_FragCoord.y < 10.0) {
+            // stepped gradient to indicate columns
+            gl_FragColor = vec4(0.0, float(expectedIndex) / float(TEST_COUNT), 0.0, 1.0);
+        } else {
+            gl_FragColor = vec4(abs(expected - actual), 0.0, 0.0, 1.0);
+        }
     }
-  `;
+    `;
 
-    console.log(fsSource);
+    const logDiv = document.querySelector('#log');
+
+    let log = 'diffing numbers: ' + JSON.stringify(numbers) + '\n';
+    log += `\n`;
+    log += 'fragment shader source: ' + fsSource + '\n';
+
+    logDiv.textContent = log;
+
 
     const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
     const programInfo = {
