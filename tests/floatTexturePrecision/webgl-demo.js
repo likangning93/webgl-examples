@@ -88,6 +88,9 @@ function main() {
     const logDiv = document.querySelector('#log');
 
     let log = 'diffing numbers: ' + JSON.stringify(numbers) + '\n';
+    log += '* each green gradation represents a number being diffed\n';
+    log += '* black indicates the diff between float texture read and hardcoded value in the shader was zero\n';
+    log += '* red indicates the diff between float texture read and harcoded value in the shader was nonzero\n';
     log += `\n`;
     log += 'fragment shader source: ' + fsSource + '\n';
 
