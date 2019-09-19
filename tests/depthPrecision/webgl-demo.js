@@ -16,11 +16,15 @@ function main() {
     precision highp float;
     attribute vec4 aVertexPosition;
 
+    uniform float uFarDistance;
+
     varying float v_depth;
 
     void main() {
-        gl_Position = aVertexPosition;
-        v_depth = (aVertexPosition.z + 1.0) * 0.5;
+        vec4 vertexPosition = aVertexPosition;
+        vertexPosition.z = vertexPosition.z / uFarDistance;
+        gl_Position = vertexPosition;
+        v_depth = (aVertexPosition.z / uFarDistance + 1.0) * 0.5;
     }
     `;
 
@@ -36,7 +40,7 @@ function main() {
         } else if (fragCoordX < 0.66) {
             gl_FragColor = vec4(vec3(v_depth), 1.0);
         } else {
-            gl_FragColor = vec4(abs(gl_FragCoord.z - v_depth), 0.0, 0.0, 1.0);
+            gl_FragColor = vec4(gl_FragCoord.z == v_depth, 0.0, 0.0, 1.0);
         }
     }
     `;
@@ -60,12 +64,21 @@ function main() {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+        },
+        uniformLocations: {
+            uFarDistance: gl.getUniformLocation(shaderProgram, 'uFarDistance'),
         }
     };
 
     const buffers = initBuffers(gl);
 
-    drawScene(gl, programInfo, buffers);
+    const farDistance = 1.0;
+    drawScene(gl, programInfo, buffers, farDistance);
+
+    const farDistanceBox = document.querySelector('#farDistance');
+    farDistanceBox.addEventListener('change', (event) => {
+        drawScene(gl, programInfo, buffers, Number.parseFloat(event.target.value));
+    });
 }
 
 // create vertex buffer for a simple full-screen quad
@@ -76,8 +89,8 @@ function initBuffers(gl) {
     const positions = [
         1.0, 1.0, 1.0,
         -1.0, 1.0, 1.0,
-        1.0, -1.0, -1.0,
-        -1.0, -1.0, -1.0
+        1.0, -1.0, 0.0,
+        -1.0, -1.0, 0.0
     ];
 
     gl.bufferData(gl.ARRAY_BUFFER,
@@ -121,9 +134,9 @@ function loadShader(gl, type, source) {
     return shader;
 }
 
-function drawScene(gl, programInfo, buffers) {
+function drawScene(gl, programInfo, buffers, farDistance) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    // Clear the canvas before we start drawing on it.
+    gl.clearDepth(1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     const numComponents = 3;
@@ -142,6 +155,8 @@ function drawScene(gl, programInfo, buffers) {
     gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
 
     gl.useProgram(programInfo.program);
+
+    gl.uniform1f(programInfo.uniformLocations.uFarDistance, farDistance);
 
     const vertexCount = 4;
     gl.drawArrays(gl.TRIANGLE_STRIP, offset, vertexCount);
