@@ -40,7 +40,11 @@ function main() {
         } else if (fragCoordX < 0.66) {
             gl_FragColor = vec4(vec3(v_depth), 1.0);
         } else {
-            gl_FragColor = vec4(gl_FragCoord.z == v_depth, 0.0, 0.0, 1.0);
+            float r = 1.0;
+            if (gl_FragCoord.z == v_depth) {
+                r = 0.0;
+            }
+            gl_FragColor = vec4(r, 0.0, 0.0, 1.0);
         }
     }
     `;
@@ -50,7 +54,7 @@ function main() {
     let log = 'Comparing built-in depth to manual depth varying\n';
     log += '* left third represents built-in depth using gl_FragCoord\n';
     log += '* middle third represents depth using a varying\n';
-    log += '* right third is the diff between the two in red\n';
+    log += '* right third is the diff between the two, with discrepancies in red\n';
     log += `\n`;
     log += 'vertex shader source: ' + vsSource + '\n';
     log += `\n`;
