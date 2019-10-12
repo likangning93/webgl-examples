@@ -40,11 +40,8 @@ function main() {
         } else if (fragCoordX < 0.66) {
             gl_FragColor = vec4(vec3(v_depth), 1.0);
         } else {
-            float r = 1.0;
-            if (gl_FragCoord.z == v_depth) {
-                r = 0.0;
-            }
-            gl_FragColor = vec4(r, 0.0, 0.0, 1.0);
+            float diff = 1000.0 * abs(gl_FragCoord.z - v_depth);
+            gl_FragColor = vec4(diff, 0.0, 0.0, 1.0);
         }
     }
     `;
